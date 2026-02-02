@@ -1,18 +1,27 @@
 # SocketBridge
 
+Mission Learning Statement
+- Mission: Build a lightweight TCP IPC bridge for local agents and tools.
+- Learning focus: protocol design, safe defaults, and zero-dependency networking.
+- Project start date: 2026-01-30 (inferred from earliest git commit)
+
 Lightweight, stdlib-only TCP IPC bridge for local agents and tools.
 
 ## Features
+
 - Length-prefixed JSON frames (no partial or merged reads)
 - Loopback-by-default bind
 - Auth token + host allowlist
 - Max-bytes cap and protocol version check
 - Zero dependencies (pure Python stdlib)
 
-## Quick Start (once published)
+## Installation
+
 ```bash
 pip install socketbridge
 ```
+
+## Quick Start
 
 ```python
 from socketbridge.server import SocketServer
@@ -26,57 +35,50 @@ srv.start()
 srv.stop()
 ```
 
-Client helper (planned):
+## Usage
+
+Client helper:
+
 ```python
 from socketbridge.client import send
 resp = send("127.0.0.1", 7002, {"type": "ping"}, token="secret")
 print(resp)
 ```
 
-## Examples
-- `examples/example_server.py` — minimal server that echos back notifications.
-- `examples/example_client.py` — sends a JSON payload with optional auth token.
+Examples:
 
-Run them:
 ```bash
 python examples/example_server.py &
 python examples/example_client.py --text "hello" --token secret
 ```
 
-## Security Defaults
-- Binds 127.0.0.1 unless you override host
-- Optional auth token via `SOCKETBRIDGE_TOKEN`
-- Optional allowlist via `SOCKETBRIDGE_ALLOWLIST` (comma separated)
-- Payload cap via `SOCKETBRIDGE_MAX_BYTES` (default 1MB)
-- Not for internet-facing use without additional hardening (TLS/mTLS)
+## Architecture
 
-## Architecture (conceptual)
 ```
 Client
   |
   | 4-byte length + JSON (auth_token, protocol_version, payload)
   v
 SocketBridge Server (loopback, token/allowlist/max-bytes)
-  |--> handler(message)   # your code runs here
-  |
+  |--> handler(message)
   ^ 4-byte length + JSON response (status, message, protocol_version)
 ```
 
-Mermaid sequence (for docs that render it):
-```mermaid
-sequenceDiagram
-    participant C as Client
-    participant S as SocketBridge
-    participant H as Handler
-    C->>S: send(len+JSON payload)
-    S->>S: validate host/token/version/size
-    S->>H: handler(message)
-    H-->>S: (optional) side effects
-    S-->>C: len+JSON response (status/protocol)
+## Project Structure
+
+```
+socketbridge/       # Core library
+examples/           # Example server/client
 ```
 
-## Why
-Provides a clean side-band channel for agents, test harnesses, and helper processes without touching stdout/stderr or adding external dependencies.
+## Building
+
+No build step required. Run directly with Python.
+
+## Contributing
+
+Issues and PRs welcome.
 
 ## License
-MIT
+
+MIT License - see [LICENSE](LICENSE) for details.
